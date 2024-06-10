@@ -1,0 +1,25 @@
+runtime: custom
+env: flex
+
+service: anecdote-activepieces
+
+env_variables:
+  AP_ENVIRONMENT: prod
+  AP_ENGINE_EXECUTABLE_PATH: dist/packages/engine/main.js
+  AP_API_KEY:
+  AP_ENCRYPTION_KEY:
+  AP_JWT_SECRET:
+  AP_FRONTEND_URL:
+
+automatic_scaling:
+  min_num_instances: 1
+  max_num_instances: 8
+
+network:
+  name: anecdote-vpc
+  subnetwork_name: public-us-east1-2
+
+resources:
+  cpu: 8
+  memory_gb: 32
+  disk_size_gb: 128
