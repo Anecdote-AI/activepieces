@@ -1,9 +1,7 @@
 FROM node:18.19-bullseye-slim AS base
 
-# Use a cache mount for apt to speed up the process
-RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
-    --mount=type=cache,target=/var/lib/apt,sharing=locked \
-    apt-get update && \
+# Update apt repository and install necessary packages
+RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         openssh-client \
         python3 \
@@ -11,7 +9,10 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         build-essential \
         git && \
     yarn config set python /usr/bin/python3 && \
-    npm install -g node-gyp
+    npm install -g node-gyp && \
+    # Clean up APT when done
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 RUN npm i -g \
   npm@9.3.1 \
