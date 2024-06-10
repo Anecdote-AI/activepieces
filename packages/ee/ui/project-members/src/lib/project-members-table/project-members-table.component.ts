@@ -54,7 +54,6 @@ export class ProjectMembersTableComponent implements OnInit {
       this.authenticationService,
       this.projectMemberService,
       this.refreshTableAtCurrentCursor$.asObservable().pipe(startWith(true)),
-      this.isFeatureLocked,
       this.paginator,
       this.activatedRoute.queryParams
     );
@@ -65,13 +64,6 @@ export class ProjectMembersTableComponent implements OnInit {
     this.isCurrentUserAdmin$ = this.projectMemberService.isRole(
       ProjectMemberRole.ADMIN
     );
-  }
-
-  openInviteMember() {
-    if (this.inviteLoading) {
-      return;
-    }
-    // TODO URGENT FIX
   }
 
   deleteInvitation(invitationId: string) {

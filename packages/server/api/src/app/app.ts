@@ -85,6 +85,7 @@ import { storeEntryModule } from './store-entry/store-entry.module'
 import { tagsModule } from './tags/tags-module'
 import { platformUserModule } from './user/platform/platform-user-module'
 import { userModule } from './user/user.module'
+import { invitationModule } from './user-invitations/user-invitation.module'
 import { webhookModule } from './webhooks/webhook-module'
 import { websocketService } from './websockets/websockets.service'
 import { flowQueueConsumer } from './workers/flow-worker/consumer/flow-queue-consumer'
@@ -261,6 +262,7 @@ export const setupApp = async (): Promise<FastifyInstance> => {
     await app.register(issuesModule)
     await app.register(authnSsoSamlModule)
     await app.register(alertsModule)
+    await app.register(invitationModule)
 
     await setupBullMQBoard(app)
 

@@ -5,9 +5,8 @@ import {
   FormGroup,
   Validators,
 } from '@angular/forms';
-import { BehaviorSubject } from 'rxjs';
+import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { UiCommonModule } from '@activepieces/ui/common';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { CommonModule } from '@angular/common';
 import {
   InvitationType,
@@ -16,9 +15,9 @@ import {
   isNil,
 } from '@activepieces/shared';
 import { LottieModule } from 'ngx-lottie';
-import { Clipboard } from '@angular/cdk/clipboard';
 import { MatDialogRef } from '@angular/material/dialog';
 import { RolesDisplayNames } from 'ee-project-members';
+import { UserInviationService } from '../../../../../../common/src/lib/service/user-invitations.service';
 
 @Component({
   templateUrl: './invite-user-dialog.component.html',
@@ -42,6 +41,8 @@ export class InviteUserDialogComponent {
   invitationTypeSubject: BehaviorSubject<InvitationType> =
     new BehaviorSubject<InvitationType>(InvitationType.PROJECT);
 
+  sendUser$: Observable<void>;
+
   readonly projectMemberRolesOptions = Object.values(ProjectMemberRole)
     .filter((f) => !isNil(RolesDisplayNames[f]))
     .map((role) => {
@@ -53,8 +54,7 @@ export class InviteUserDialogComponent {
 
   constructor(
     private fb: FormBuilder,
-    private clipboard: Clipboard,
-    private matsnackbar: MatSnackBar,
+    private userInvitationService: UserInviationService,
     private dialogRef: MatDialogRef<InviteUserDialogComponent>
   ) {
     this.formGroup = this.fb.group({
@@ -85,17 +85,25 @@ export class InviteUserDialogComponent {
     this.formGroup.markAllAsTouched();
     if (!this.loading$.value && this.formGroup.valid) {
       this.loading$.next(true);
+      const { email, type, platformRole, projectRole } = this.formGroup.value;
+      this.sendUser$ = this.userInvitationService
+        .inviteUser({
+          email: email!,
+          type: type!,
+          platformRole: platformRole!,
+          projectRole:
+            type === InvitationType.PLATFORM ? undefined : projectRole!,
+        })
+        .pipe(
+          tap(() => {
+            this.loading$.next(false);
+            this.dialogRef.close();
+          })
+        );
     }
   }
 
   close() {
     this.dialogRef.close();
-  }
-
-  copy(text: string) {
-    this.clipboard.copy(text);
-    this.matsnackbar.open('Copied to clipboard', '', {
-      duration: 2000,
-    });
   }
 }

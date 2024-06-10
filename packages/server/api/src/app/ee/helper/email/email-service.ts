@@ -16,7 +16,15 @@ const EDITION_IS_NOT_CLOUD = EDITION !== ApEdition.CLOUD
 
 export const emailService = {
     async sendInvitation({ userInvitation }: SendInvitationArgs): Promise<void> {
-
+        logger.info({
+            message: '[emailService#sendInvitation] sending invitation email',
+            email: userInvitation.email,
+            platformId: userInvitation.platformId,
+            projectId: userInvitation.projectId,
+            type: userInvitation.type,
+            projectRole: userInvitation.projectRole,
+            platformRole: userInvitation.platformRole,
+        })
         const { email, platformId } = userInvitation
         const token = await jwtUtils.sign({
             payload: {

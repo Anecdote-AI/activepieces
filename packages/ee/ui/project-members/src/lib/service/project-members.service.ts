@@ -8,8 +8,6 @@ import {
   environment,
 } from '@activepieces/ui/common';
 import {
-  AcceptInvitationRequest,
-  AcceptProjectResponse,
   ListProjectMembersRequestQuery,
   ProjectMember,
   UpsertProjectMemberRequestBody,
@@ -54,13 +52,6 @@ export class ProjectMemberService {
 
   role(): Observable<ProjectMemberRole | null> {
     return this.role$;
-  }
-
-  accept(request: AcceptInvitationRequest): Observable<AcceptProjectResponse> {
-    return this.http.post<AcceptProjectResponse>(
-      environment.apiUrl + '/project-members/accept',
-      request
-    );
   }
 
   invite(request: UpsertProjectMemberRequestBody): Observable<void> {

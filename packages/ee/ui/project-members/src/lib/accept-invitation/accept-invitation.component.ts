@@ -1,6 +1,6 @@
+import { UserInviationService } from '@activepieces/ui/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ProjectMemberService } from '../service/project-members.service';
 import { Observable, catchError, map, of, switchMap, tap } from 'rxjs';
 
 @Component({
@@ -15,14 +15,14 @@ export class AcceptInvitationComponent implements OnInit {
   constructor(
     private activatedRoute: ActivatedRoute,
     private router: Router,
-    private projectMemberService: ProjectMemberService
+    private userInvitationService: UserInviationService
   ) {}
 
   ngOnInit(): void {
     this.acceptInvitation$ = this.activatedRoute.queryParams.pipe(
       switchMap((query) => {
-        return this.projectMemberService.accept({
-          token: query['token'],
+        return this.userInvitationService.accept({
+          invitationToken: query['token'],
         });
       }),
       tap((value) => {

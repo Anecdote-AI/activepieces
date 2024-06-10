@@ -6,9 +6,11 @@ import { databaseConnection } from '../database/database-connection'
 import { emailService } from '../ee/helper/email/email-service'
 import { projectMemberService } from '../ee/project-members/project-member.service'
 import { jwtUtils } from '../helper/jwt-utils'
+import { buildPaginator } from '../helper/pagination/build-paginator'
+import { paginationHelper } from '../helper/pagination/pagination-utils'
 import { userService } from '../user/user-service'
 import { UserInvitationEntity } from './user-invitation.entity'
-import { ActivepiecesError, apId, assertNotNullOrUndefined, ErrorCode, InvitationStatus, InvitationType, isNil, PlatformRole, UserInvitation } from '@activepieces/shared'
+import { ActivepiecesError, apId, assertNotNullOrUndefined, ErrorCode, InvitationStatus, InvitationType, isNil, PlatformRole, ProjectMemberRole, SeekPage, UserInvitation } from '@activepieces/shared'
 
 const repo = databaseConnection.getRepository(UserInvitationEntity)
 
@@ -59,6 +61,8 @@ export const userInvitationsService = {
         platformId,
         projectId,
         type,
+        projectRole,
+        platformRole,
     }: CreateParams): Promise<UserInvitation> {
         const invitation = await repo.findOneBy({
             email,
@@ -75,9 +79,11 @@ export const userInvitationsService = {
             type,
             email,
             platformId,
+            projectRole: isNil(projectRole) ? undefined : projectRole,
+            platformRole: isNil(platformRole) ? undefined : platformRole,
             projectId: isNil(projectId) ? undefined : projectId,
         }, ['email', 'platformId', 'projectId'])
-        
+
         const userInvitation = await this.getOneOrThrow({
             id,
             platformId,
@@ -88,7 +94,24 @@ export const userInvitationsService = {
         })
         return userInvitation
     },
-
+    async list(params: ListUserParams): Promise<SeekPage<UserInvitation>> {
+        const decodedCursor = paginationHelper.decodeCursor(params.cursor ?? null)
+        const paginator = buildPaginator({
+            entity: UserInvitationEntity,
+            query: {
+                limit: params.limit,
+                order: 'ASC',
+                afterCursor: decodedCursor.nextCursor,
+                beforeCursor: decodedCursor.previousCursor,
+            },
+        })
+        const queryBuilder = repo.createQueryBuilder('user_invitation').where({
+            platformId: params.platformId,
+            projectId: params.projectId,
+        })
+        const { data, cursor } = await paginator.paginate(queryBuilder)
+        return paginationHelper.createPage<UserInvitation>(data, cursor)
+    },
     async delete({ id, platformId }: PlatformAndIdParams): Promise<void> {
         const invitation = await this.getOneOrThrow({ id, platformId })
         await repo.delete({
@@ -112,7 +135,7 @@ export const userInvitationsService = {
         }
         return invitation
     },
-    async accept({ invitationToken }: AcceptParams): Promise<void> {
+    async accept({ invitationToken }: AcceptParams): Promise<{ registered: boolean }> {
         const invitation = await getByInvitationTokenOrThrow(
             invitationToken,
         )
@@ -123,6 +146,13 @@ export const userInvitationsService = {
             email: invitation.email,
             platformId: invitation.platformId,
         })
+        const user = await userService.getByPlatformAndEmail({
+            email: invitation.email,
+            platformId: invitation.platformId,
+        })
+        return {
+            registered: !isNil(user),
+        }
     },
     async hasAnyAcceptedInvitations({
         email,
@@ -148,6 +178,13 @@ export const userInvitationsService = {
     },
 }
 
+
+type ListUserParams = {
+    platformId: string
+    projectId: string
+    limit: number
+    cursor: string | null
+}
 
 type ProvisionUserInvitationParams = {
     email: string
@@ -192,10 +229,10 @@ export type AcceptParams = {
 export type CreateParams = {
     email: string
     platformId: string
-    platformRole: PlatformRole
+    platformRole: PlatformRole | null
     projectId: string | null
     type: InvitationType
-    projectRole: string | null
+    projectRole: ProjectMemberRole | null
 }
 
 export type DeleteParams = {
