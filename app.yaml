@@ -13,6 +13,7 @@ env_variables:
   AP_QUEUE_MODE: MEMORY
   AP_DB_TYPE: SQLITE3
   AP_PIECES_SOURCE: DB
+  PORT: 80
 
 automatic_scaling:
   min_num_instances: 1
