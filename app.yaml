@@ -21,6 +21,8 @@ automatic_scaling:
 network:
   name: anecdote-vpc
   subnetwork_name: public-us-east1-2
+  forwarded_ports:
+    - 8080:80
 
 resources:
   cpu: 8
