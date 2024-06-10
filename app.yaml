@@ -10,6 +10,8 @@ env_variables:
   AP_ENCRYPTION_KEY:
   AP_JWT_SECRET:
   AP_FRONTEND_URL:
+  AP_QUEUE_MODE: MEMORY
+  AP_DB_TYPE: SQLITE3
 
 automatic_scaling:
   min_num_instances: 1
